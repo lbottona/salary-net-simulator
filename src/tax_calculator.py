@@ -40,6 +40,27 @@ def calcola_detrazione_lavoro_dipendente(reddito):
         return 0
 
 
+def calcola_addizionale_regionale_lombardia(imponibile: float) -> float:
+    """Addizionale regionale Lombardia 2026 (codice regione 10)."""
+    brackets = [
+        (15000, 0.0123),
+        (28000, 0.0158),
+        (50000, 0.0172),
+        (float("inf"), 0.0173),
+    ]
+
+    previous_limit = 0
+    addizionale = 0
+    for limit, rate in brackets:
+        if imponibile > limit:
+            addizionale += (limit - previous_limit) * rate
+            previous_limit = limit
+        else:
+            addizionale += (imponibile - previous_limit) * rate
+            break
+    return addizionale
+
+
 def calcola_netto(ral, mensilita=13):
     # 1️⃣ INPS
     inps = ral * 0.0919
@@ -53,7 +74,7 @@ def calcola_netto(ral, mensilita=13):
     irpef = max(irpef_lorda - detrazione, 0)
 
     # 4️⃣ Addizionali
-    add_regionale = imponibile * 0.0173
+    add_regionale = calcola_addizionale_regionale_lombardia(imponibile)
     add_comunale = imponibile * 0.008
 
     totale_tasse = inps + irpef + add_regionale + add_comunale
